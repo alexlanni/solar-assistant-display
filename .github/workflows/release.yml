@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Build firmware
+        run: pio run -e d1_mini
+
+      - name: Rename firmware binary
+        run: |
+          TAG=${GITHUB_REF_NAME}
+          cp .pio/build/d1_mini/firmware.bin solar-assistant-display-${TAG}.bin
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: solar-assistant-display-${{ github.ref_name }}.bin
+          generate_release_notes: true
